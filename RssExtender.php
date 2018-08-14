@@ -271,8 +271,11 @@ class RssExtender
 		{
 			$originalUrlParts = parse_url($url);
 			$context = stream_context_create(array('http' => array('header' => "Host: ".$originalUrlParts["host"]."\r\nUser-Agent: rss-extender 0.6", 'follow_location' => false, 'max_redirects' => '3')));
-			$content = file_get_contents($url, false, $context);
-
+			$content = @file_get_contents($url, false, $context);
+			if (empty($content))
+			{
+				return -1;
+			}
 			foreach ($http_response_header as $header)
 			{
 				if (stripos($header, "location:", 0) === 0)
