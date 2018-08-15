@@ -341,6 +341,13 @@ class RssExtender
 	 */
 	public function getFilteredContentOfUrl(Feed $feed, $url, $useCache, $time)
 	{
+		$baseUrl = $feed->baseUrl;
+		if ($baseUrl == "")
+		{
+			$parseUrl = parse_url($url);
+			$baseUrl = $parseUrl["scheme"] . "://" . $parseUrl["host"] . "/";
+		}
+
 		$file = $this->temporaryFolder . "/" . $feed->name . "/" . md5($url);
 		// get the article from cache
 		if ($useCache && is_file($file) && filesize($file) > 0 && filemtime($file) == $time)
@@ -377,13 +384,13 @@ class RssExtender
 			$filteredContent = $this->getFilteredContentOfUrlWithReadability($originalContent);
 		}
 
-		$filteredContent = $this->enhanceContent($feed, $feed->baseUrl, $filteredContent, true);
+		$filteredContent = $this->enhanceContent($feed, $baseUrl, $filteredContent, true);
 
 		// empty -> use readability
 		if ($filteredContent == "" && $this->readability_enabled)
 		{
 			$filteredContent = $this->getFilteredContentOfUrlWithReadability($originalContent);
-			$filteredContent = $this->enhanceContent($feed, $feed->baseUrl, $filteredContent, false);
+			$filteredContent = $this->enhanceContent($feed, $baseUrl, $filteredContent, false);
 		}
 
 		// multiple page splitting routine
@@ -394,7 +401,9 @@ class RssExtender
 			{
 				$filteredContent = preg_replace($feed->contentSplitRegex, "", $filteredContent);
 				$filteredContent .= "\n<br><hr><br>\n";
-				$filteredContent .= $this->getFilteredContentOfUrl($feed, $feed->baseUrl . $match[$feed->contentSplitRegexPosition], $useCache, $time);
+				$next_page = $match[$feed->contentSplitRegexPosition];
+				$next_page = preg_replace("/amp;/i", "", $next_page);
+				$filteredContent .= $this->getFilteredContentOfUrl($feed, $baseUrl . $next_page, $useCache, $time);
 			}
 		}
 
