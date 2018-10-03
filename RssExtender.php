@@ -153,8 +153,14 @@ class RssExtender
 	{
 		foreach ($this->getFeeds() as $feed)
 		{
-			$host = parse_url($feed->baseUrl, PHP_URL_HOST);
-			if ( ! array_key_exists($host, $this->urlFeedMapper))
+			$url = $feed->baseUrl;
+			if ($url == $dynamic)
+			{
+				$url = $feed->url;
+			}
+
+			$host = parse_url($url, PHP_URL_HOST);
+			if ( ! array_key_exists($host, $this->urlFeedMapper) || strlen($feed->name) < strlen($this->urlFeedMapper[$host]->name))
 			{
 				$this->urlFeedMapper[$host] = $feed;
 			}
